@@ -37,17 +37,16 @@ export default function LoginPage() {
 
       if (res.ok) {
         if (!isLogin) {
-          // --- REGISTER SUCCESS ---
           toast.success("User created successfully!");
-          setIsLogin(true); // Switch to Login mode automatically
+          setIsLogin(true);
         } else {
-          // --- LOGIN SUCCESS ---
           toast.success("Welcome back!");
-          // Save flag for Navbar to see
-          localStorage.setItem("isLoggedIn", "true");
-          // Save basic user info for Profile page
-          localStorage.setItem("user_info", JSON.stringify(data.user));
-          router.push("/"); // Go Home
+          
+          // ✅ CHANGE: Use sessionStorage (Clears on browser close)
+          sessionStorage.setItem("isLoggedIn", "true");
+          sessionStorage.setItem("user_info", JSON.stringify(data.user));
+          
+          router.push("/");
         }
       } else {
         toast.error(data.error);
@@ -72,62 +71,31 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          
           {!isLogin && (
             <div className="relative">
               <User className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-              <input 
-                name="name"
-                placeholder="Full Name"
-                onChange={handleChange}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white transition-colors"
-                required={!isLogin}
-              />
+              <input name="name" placeholder="Full Name" onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" required={!isLogin} />
             </div>
           )}
-
           <div className="relative">
             <Mail className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-            <input 
-              name="email"
-              type="email"
-              placeholder="Email Address"
-              onChange={handleChange}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white transition-colors"
-              required
-            />
+            <input name="email" type="email" placeholder="Email Address" onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" required />
           </div>
-
           <div className="relative">
             <Lock className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-            <input 
-              name="password"
-              type="password"
-              placeholder="Password"
-              onChange={handleChange}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white transition-colors"
-              required
-            />
+            <input name="password" type="password" placeholder="Password" onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" required />
           </div>
 
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full bg-[#006a55] text-white py-3.5 rounded-xl font-bold text-lg hover:bg-[#005544] transition-all shadow-lg shadow-[#006a55]/20 flex items-center justify-center gap-2 disabled:opacity-70"
-          >
+          <button type="submit" disabled={loading} className="w-full bg-[#006a55] text-white py-3.5 rounded-xl font-bold text-lg hover:bg-[#005544] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-70">
             {loading ? <Loader2 className="animate-spin w-5 h-5" /> : (isLogin ? "Log In" : "Sign Up")}
             {!loading && <ArrowRight className="w-5 h-5" />}
           </button>
-
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
             {isLogin ? "New to Mamta Mobiles?" : "Already have an account?"}
-            <button 
-              onClick={() => setIsLogin(!isLogin)} 
-              className="ml-2 text-[#006a55] font-bold hover:underline"
-            >
+            <button onClick={() => setIsLogin(!isLogin)} className="ml-2 text-[#006a55] font-bold hover:underline">
               {isLogin ? "Sign Up" : "Log In"}
             </button>
           </p>

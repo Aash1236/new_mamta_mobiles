@@ -13,21 +13,25 @@ import {
   Tag, 
   Image as ImageIcon, 
   Menu, 
-  ShieldCheck 
+  ShieldCheck,
+  RefreshCw 
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Fetch Orders
-  const fetchOrders = async () => {
+  // Fetch Orders Function
+  const fetchOrders = async (isAutoRefresh = false) => {
     try {
       const res = await fetch("/api/orders");
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
+        setLastUpdated(new Date());
+        if (!isAutoRefresh && !loading) toast.success("Dashboard Updated");
       }
     } catch (error) {
       console.error("Failed to load orders");
@@ -36,8 +40,15 @@ export default function AdminOrdersPage() {
     }
   };
 
+  // ✅ REAL-TIME UPDATES (Polling every 5 seconds)
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(); // Initial Load
+
+    const interval = setInterval(() => {
+      fetchOrders(true); // Silent update
+    }, 5000); // 5 Seconds
+
+    return () => clearInterval(interval); // Cleanup on exit
   }, []);
 
   // Handle Status Change
@@ -76,14 +87,17 @@ export default function AdminOrdersPage() {
       <Toaster position="bottom-center" />
       <div className="container mx-auto max-w-6xl">
         
-        {/* --- CENTERED HEADER SECTION --- */}
+        {/* --- HEADER --- */}
         <div className="flex flex-col items-center justify-center mb-12 space-y-8">
           
-          <div className="text-center">
+          <div className="text-center relative">
             <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Admin Dashboard</h1>
-            <p className="text-gray-500 max-w-md mx-auto">
-              Manage your store inventory, users, and track orders from one central hub.
-            </p>
+            <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-400 mt-2">
+              <span className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-full animate-pulse">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span> Live Updates
+              </span>
+              <span>Last checked: {lastUpdated.toLocaleTimeString()}</span>
+            </div>
           </div>
 
           {/* Row 1: Management Buttons */}

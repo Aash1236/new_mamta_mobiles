@@ -104,13 +104,13 @@ export default function Home() {
       <section className="relative w-full overflow-hidden bg-secondary">
         {loading && banners.length === 0 ? (
           // Loading State
-          <div className="w-full h-[500px] bg-gray-100 flex items-center justify-center">
+          <div className="w-full h-[400px] bg-gray-100 flex items-center justify-center">
             <p className="text-gray-400 font-bold animate-pulse">Loading Banners...</p>
           </div>
         ) : banners.length > 0 ? (
           <Slider {...settings}>
             {banners.map((banner) => (
-              <div key={banner._id} className="relative w-full h-[500px] md:h-[650px] outline-none">
+              <div key={banner._id} className="relative w-full h-[400px] md:h-[550px] outline-none">
                 {/* Background Image */}
                 <Image 
                   src={banner.image} 

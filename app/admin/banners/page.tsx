@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, UploadCloud, Trash2, Loader2, Save, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, UploadCloud, Trash2, Loader2, Save, Image as ImageIcon, Edit, X } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";
 
@@ -11,6 +11,7 @@ export default function ManageBannersPage() {
   const [loading, setLoading] = useState(true);
   
   // Form State
+  const [editId, setEditId] = useState<string | null>(null); // Track editing
   const [formData, setFormData] = useState({
     title: "",
     subtitle: "",
@@ -54,7 +55,7 @@ export default function ManageBannersPage() {
       );
       const json = await res.json();
       setImage(json.secure_url);
-      toast.success("Banner uploaded!");
+      toast.success("Image uploaded!");
     } catch (err) {
       toast.error("Upload failed");
     } finally {
@@ -62,7 +63,26 @@ export default function ManageBannersPage() {
     }
   };
 
-  // 3. Save Banner
+  // 3. Populate Form for Edit
+  const handleEdit = (banner: any) => {
+    setEditId(banner._id);
+    setFormData({
+      title: banner.title,
+      subtitle: banner.subtitle,
+      link: banner.link
+    });
+    setImage(banner.image);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 4. Reset Form
+  const resetForm = () => {
+    setEditId(null);
+    setFormData({ title: "", subtitle: "", link: "/shop" });
+    setImage("");
+  };
+
+  // 5. Submit (Create or Update)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !image) {
@@ -72,26 +92,40 @@ export default function ManageBannersPage() {
     setSaving(true);
 
     try {
-      const res = await fetch("/api/banners", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, image }),
-      });
+      const payload = { ...formData, image };
+      
+      let res;
+      if (editId) {
+        // UPDATE MODE
+        res = await fetch(`/api/banners/${editId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        // CREATE MODE
+        res = await fetch("/api/banners", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (res.ok) {
-        toast.success("Banner Added!");
-        setFormData({ title: "", subtitle: "", link: "/shop" });
-        setImage("");
+        toast.success(editId ? "Banner Updated!" : "Banner Created!");
+        resetForm();
         fetchBanners();
+      } else {
+        toast.error("Operation failed");
       }
     } catch (error) {
-      toast.error("Failed to add banner");
+      toast.error("Something went wrong");
     } finally {
       setSaving(false);
     }
   };
 
-  // 4. Delete Banner
+  // 6. Delete Banner
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this banner?")) return;
     await fetch(`/api/banners/${id}`, { method: "DELETE" });
@@ -113,11 +147,21 @@ export default function ManageBannersPage() {
         <div className="grid md:grid-cols-2 gap-8">
           {/* Form */}
           <div className="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm h-fit">
-            <h2 className="font-bold text-lg mb-4 text-gray-800">Add New Banner</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-bold text-lg text-gray-900">
+                {editId ? "Edit Banner" : "Add New Banner"}
+              </h2>
+              {editId && (
+                <button onClick={resetForm} className="text-xs text-red-500 hover:underline flex items-center gap-1">
+                  <X className="w-3 h-3" /> Cancel Edit
+                </button>
+              )}
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               
               {/* Image Upload */}
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-white hover:border-[#006a55] hover:bg-[#006a55]/5 transition-all cursor-pointer relative h-40">
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-500 hover:border-[#006a55] hover:bg-[#006a55]/5 transition-all cursor-pointer relative h-40 bg-gray-50">
                 <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                 {image ? (
                   <Image src={image} alt="Preview" fill className="object-cover rounded-lg" />
@@ -129,12 +173,39 @@ export default function ManageBannersPage() {
                 )}
               </div>
 
-              <input placeholder="Title (e.g. OnePlus 12)" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 outline-none text-black" />
-              <input placeholder="Subtitle (e.g. Smooth beyond belief)" value={formData.subtitle} onChange={(e) => setFormData({...formData, subtitle: e.target.value})} className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 outline-none text-black" />
-              <input placeholder="Link (e.g. /shop/oneplus)" value={formData.link} onChange={(e) => setFormData({...formData, link: e.target.value})} className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 outline-none text-black" />
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">Title</label>
+                <input 
+                  placeholder="e.g. OnePlus 12" 
+                  value={formData.title} 
+                  onChange={(e) => setFormData({...formData, title: e.target.value})} 
+                  className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 outline-none focus:border-[#006a55] text-gray-900" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">Subtitle</label>
+                <input 
+                  placeholder="e.g. Smooth beyond belief" 
+                  value={formData.subtitle} 
+                  onChange={(e) => setFormData({...formData, subtitle: e.target.value})} 
+                  className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 outline-none focus:border-[#006a55] text-gray-900" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">Link URL</label>
+                <input 
+                  placeholder="e.g. /shop/oneplus" 
+                  value={formData.link} 
+                  onChange={(e) => setFormData({...formData, link: e.target.value})} 
+                  className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 outline-none focus:border-[#006a55] text-gray-900" 
+                />
+              </div>
 
               <button type="submit" disabled={saving || uploading} className="w-full bg-[#006a55] text-white py-3 rounded-xl font-bold hover:bg-[#005544] transition-all flex items-center justify-center gap-2">
-                {saving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />} Save Banner
+                {saving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />} 
+                {editId ? "Update Banner" : "Save Banner"}
               </button>
             </form>
           </div>
@@ -142,17 +213,32 @@ export default function ManageBannersPage() {
           {/* List */}
           <div className="space-y-4">
             {loading ? <Loader2 className="animate-spin text-[#006a55] mx-auto" /> : banners.map((banner) => (
-              <div key={banner._id} className="relative group bg-white rounded-xl overflow-hidden border-2 border-gray-100 shadow-sm">
+              <div key={banner._id} className={`relative group bg-white rounded-xl overflow-hidden border-2 shadow-sm transition-all ${editId === banner._id ? 'border-[#006a55] ring-2 ring-[#006a55]/20' : 'border-gray-100'}`}>
                 <div className="h-32 relative">
                   <Image src={banner.image} alt={banner.title} fill className="object-cover" />
-                  <div className="absolute inset-0 bg-black/40 flex flex-col justify-center px-6">
+                  <div className="absolute inset-0 bg-black/40 flex flex-col justify-center px-6 transition-opacity">
                     <h3 className="text-white font-bold text-lg">{banner.title}</h3>
                     <p className="text-gray-200 text-xs">{banner.subtitle}</p>
                   </div>
                 </div>
-                <button onClick={() => handleDelete(banner._id)} className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                
+                {/* Action Buttons */}
+                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => handleEdit(banner)} 
+                    className="bg-white text-blue-600 p-2 rounded-full hover:bg-blue-50 shadow-sm" 
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(banner._id)} 
+                    className="bg-white text-red-500 p-2 rounded-full hover:bg-red-50 shadow-sm" 
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

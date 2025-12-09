@@ -86,6 +86,8 @@ export default function Navbar() {
     }
   };
 
+  
+
   return (
     <>
       <div className="w-full bg-white shadow-sm sticky top-0 z-50 font-sans">

@@ -9,7 +9,6 @@ export async function GET() {
     const orders = await Order.find().sort({ createdAt: -1 });
     return NextResponse.json(orders);
   } catch (error) {
-    console.error("Error fetching orders:", error);
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
   }
 }
@@ -20,7 +19,7 @@ export async function POST(request: Request) {
     await connectDB();
     const body = await request.json();
     
-    // FIX: Use 'new Order().save()' instead of 'create()' to guarantee a single document
+    // Create and Save
     const newOrder = new Order(body);
     await newOrder.save();
 
@@ -29,8 +28,12 @@ export async function POST(request: Request) {
       orderId: newOrder._id 
     }, { status: 201 });
 
-  } catch (error) {
-    console.error("Order Error:", error);
-    return NextResponse.json({ error: "Failed to place order" }, { status: 500 });
+  } catch (error: any) {
+    console.error("❌ Order Error:", error); // Check your VS Code Terminal for this!
+    
+    // Return the actual error message to the frontend
+    return NextResponse.json({ 
+      error: error.message || "Failed to place order" 
+    }, { status: 500 });
   }
 }

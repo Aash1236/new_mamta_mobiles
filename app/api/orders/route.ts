@@ -2,11 +2,10 @@ import { NextResponse } from "next/server";
 import connectDB from "@/backend/config/db";
 import Order from "@/backend/models/Order";
 
-// 1. GET: Fetch ALL Orders (For Admin Dashboard)
+// 1. GET: Fetch ALL Orders
 export async function GET() {
   try {
     await connectDB();
-    // Fetch orders and sort by date (newest first)
     const orders = await Order.find().sort({ createdAt: -1 });
     return NextResponse.json(orders);
   } catch (error) {
@@ -15,12 +14,15 @@ export async function GET() {
   }
 }
 
-// 2. POST: Create a new Order (KEEP THIS EXISTING CODE)
+// 2. POST: Create a new Order
 export async function POST(request: Request) {
   try {
     await connectDB();
     const body = await request.json();
-    const newOrder = await Order.create(body);
+    
+    // FIX: Use 'new Order().save()' instead of 'create()' to guarantee a single document
+    const newOrder = new Order(body);
+    await newOrder.save();
 
     return NextResponse.json({ 
       message: "Order placed successfully", 
@@ -32,4 +34,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to place order" }, { status: 500 });
   }
 }
-

@@ -3,15 +3,26 @@ import mongoose from "mongoose";
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
+  throw new Error(
+    "Please define the MONGODB_URI environment variable inside .env.local"
+  );
 }
 
-// Global variable to cache the connection in development
-let cached = (global as any).mongoose;
+// --- FIX START: Define the type for the global variable ---
+// This tells TypeScript: "Expect a mongoose variable on the global object"
+declare global {
+  var mongoose: {
+    conn: mongoose.Connection | null;
+    promise: Promise<mongoose.Mongoose> | null;
+  };
+}
+
+let cached = global.mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = global.mongoose = { conn: null, promise: null };
 }
+// --- FIX END ---
 
 async function connectDB() {
   if (cached.conn) {
@@ -23,14 +34,14 @@ async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
       console.log("✅ New MongoDB Connection Established");
       return mongoose;
     });
   }
-  
+
   try {
-    cached.conn = await cached.promise;
+    cached.conn = (await cached.promise).connection;
   } catch (e) {
     cached.promise = null;
     throw e;

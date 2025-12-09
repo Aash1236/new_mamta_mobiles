@@ -1,7 +1,26 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com', // Allow Cloudinary images
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co', // Allow placeholder images
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.simpleicons.org', // Allow brand logos
+      },
+      {
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org', // Allow wikimedia (just in case)
+      }
+    ],
+  },
 };
 
 export default nextConfig;

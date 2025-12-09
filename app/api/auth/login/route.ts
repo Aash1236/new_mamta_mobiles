@@ -14,8 +14,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // 2. Check Password
+    // --- FIX START: Safety Check ---
+    // If the user exists but has no password (e.g. bad data), reject login
+    if (!user.password) {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+    // --- FIX END ---
+
+    // 2. Check Password (Now TypeScript knows password exists)
     const isMatch = await bcrypt.compare(password, user.password);
+    
     if (!isMatch) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }

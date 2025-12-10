@@ -27,17 +27,23 @@ export async function POST(request: Request) {
       user: { name: user.name, email: user.email, role: user.role }
     });
 
-    // ✅ Session Cookie (No maxAge = Expires when browser closes)
+    // ✅ FIX: Add 'secure' and 'sameSite' flags for Vercel
+    const isProduction = process.env.NODE_ENV === "production";
+
     response.cookies.set("user_token", user._id.toString(), {
       httpOnly: true,
       path: "/",
+      secure: isProduction, // ✅ REQUIRED for HTTPS
+      sameSite: "lax",      // ✅ Recommended for login handling
+      // No maxAge (Session Cookie)
     });
 
     if (user.role === "admin") {
       response.cookies.set("admin_token", "authenticated", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: isProduction, // ✅ REQUIRED for HTTPS
         path: "/",
+        sameSite: "lax",
       });
     }
 

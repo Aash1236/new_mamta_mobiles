@@ -42,14 +42,15 @@ export default function LoginPage() {
         } else {
           toast.success("Welcome back!");
           
-          // ✅ FIX: Save Auth Data to Session Storage
-          sessionStorage.setItem("isLoggedIn", "true");
+          // ✅ FIX: Use localStorage (Persists even if browser closes/refreshes)
+          localStorage.setItem("isLoggedIn", "true");
           if (data.token) {
-             sessionStorage.setItem("mamta_token", data.token); // Save Token
+             localStorage.setItem("mamta_token", data.token); 
           }
-          sessionStorage.setItem("user_info", JSON.stringify(data.user));
+          localStorage.setItem("user_info", JSON.stringify(data.user));
           
-          router.push("/");
+          // Force a hard refresh to update Navbar state
+          window.location.href = "/";
         }
       } else {
         toast.error(data.error || "Authentication failed");
@@ -64,7 +65,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Toaster position="bottom-center" />
-      
       <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-xl border-2 border-gray-100">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-[#006a55] mb-2 font-exo">MAMTA</h1>
@@ -72,53 +72,26 @@ export default function LoginPage() {
             {isLogin ? "Welcome Back" : "Create Account"}
           </p>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div className="relative">
               <User className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-              <input 
-                name="name" 
-                placeholder="Full Name" 
-                onChange={handleChange} 
-                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" 
-                required={!isLogin} 
-              />
+              <input name="name" placeholder="Full Name" onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" required={!isLogin} />
             </div>
           )}
           <div className="relative">
             <Mail className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-            <input 
-              name="email" 
-              type="email" 
-              placeholder="Email Address" 
-              onChange={handleChange} 
-              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" 
-              required 
-            />
+            <input name="email" type="email" placeholder="Email Address" onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" required />
           </div>
           <div className="relative">
             <Lock className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-            <input 
-              name="password" 
-              type="password" 
-              placeholder="Password" 
-              onChange={handleChange} 
-              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" 
-              required 
-            />
+            <input name="password" type="password" placeholder="Password" onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" required />
           </div>
-
-          <button 
-            type="submit" 
-            disabled={loading} 
-            className="w-full bg-[#006a55] text-white py-3.5 rounded-xl font-bold text-lg hover:bg-[#005544] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-70"
-          >
+          <button type="submit" disabled={loading} className="w-full bg-[#006a55] text-white py-3.5 rounded-xl font-bold text-lg hover:bg-[#005544] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-70">
             {loading ? <Loader2 className="animate-spin w-5 h-5" /> : (isLogin ? "Log In" : "Sign Up")}
             {!loading && <ArrowRight className="w-5 h-5" />}
           </button>
         </form>
-
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
             {isLogin ? "New to Mamta Mobiles?" : "Already have an account?"}

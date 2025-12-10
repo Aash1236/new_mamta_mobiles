@@ -13,6 +13,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "New Mamta Mobiles",
   description: "India's Next Gen Mobile Accessory Brand",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

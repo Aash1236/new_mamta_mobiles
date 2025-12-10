@@ -15,19 +15,21 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchUserData() {
       try {
-        // 1. Ask Server: "Who am I?" (Checks Cookie)
-        const userRes = await fetch("/api/auth/me");
+        // ✅ THE FIX: Add credentials: "include"
+        // This forces the browser to send the secure cookie to Vercel
+        const userRes = await fetch("/api/auth/me", {
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", 
+        });
         
         if (!userRes.ok) {
-          // If server says "No Cookie" or "Invalid", redirect to login
-          router.push("/login");
-          return;
+          throw new Error("Not authenticated");
         }
 
         const userData = await userRes.json();
         setUser(userData);
 
-        // 2. Fetch Orders using the verified email
+        // Fetch Orders
         const orderRes = await fetch("/api/orders/user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -38,7 +40,8 @@ export default function ProfilePage() {
           setOrders(await orderRes.json());
         }
       } catch (error) {
-        console.error("Failed to load profile");
+        // If auth fails, redirect to login
+        router.push("/login");
       } finally {
         setLoading(false);
       }
@@ -48,8 +51,9 @@ export default function ProfilePage() {
   }, [router]);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    // Also clear session storage just to be clean for the Navbar
+    // Also add credentials here to ensure the cookie is actually deleted on server
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem("isLoggedIn");
       sessionStorage.removeItem("user_info");
@@ -76,7 +80,7 @@ export default function ProfilePage() {
 
         <div className="grid md:grid-cols-3 gap-8">
           
-          {/* User Info & Admin Button */}
+          {/* User Info */}
           <div className="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm h-fit space-y-6">
             <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 bg-[#006a55]/10 rounded-full flex items-center justify-center text-[#006a55] mb-4">

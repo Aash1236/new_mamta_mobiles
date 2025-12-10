@@ -13,47 +13,58 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ Get from sessionStorage
-    const storedUser = sessionStorage.getItem("user_info");
-    if (!storedUser) {
-      router.push("/login");
-      return;
-    }
-    
-    const userData = JSON.parse(storedUser);
-    setUser(userData);
-
-    async function fetchUserOrders() {
+    async function fetchUserData() {
       try {
-        const res = await fetch("/api/orders/user", {
+        // 1. Ask Server: "Who am I?" (Checks Cookie)
+        const userRes = await fetch("/api/auth/me");
+        
+        if (!userRes.ok) {
+          // If server says "No Cookie" or "Invalid", redirect to login
+          router.push("/login");
+          return;
+        }
+
+        const userData = await userRes.json();
+        setUser(userData);
+
+        // 2. Fetch Orders using the verified email
+        const orderRes = await fetch("/api/orders/user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: userData.email }),
         });
         
-        if (res.ok) {
-          const data = await res.json();
-          setOrders(data);
+        if (orderRes.ok) {
+          setOrders(await orderRes.json());
         }
       } catch (error) {
-        console.error("Failed to load orders");
+        console.error("Failed to load profile");
       } finally {
         setLoading(false);
       }
     }
 
-    fetchUserOrders();
+    fetchUserData();
   }, [router]);
 
-  const handleLogout = () => {
-    // ✅ Clear sessionStorage
-    sessionStorage.removeItem("isLoggedIn");
-    sessionStorage.removeItem("user_info");
-    
-    fetch("/api/auth/logout", { method: "POST" });
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    // Also clear session storage just to be clean for the Navbar
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem("isLoggedIn");
+      sessionStorage.removeItem("user_info");
+    }
     toast.success("Logged out successfully");
     router.push("/login");
   };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="animate-spin w-10 h-10 text-[#006a55]" />
+      </div>
+    );
+  }
 
   if (!user) return null;
 
@@ -94,12 +105,10 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          {/* Orders Section (Same as before) */}
+          {/* Orders Section */}
           <div className="md:col-span-2 space-y-6">
             <h2 className="text-xl font-bold text-gray-800">Order History</h2>
-            {loading ? (
-              <div className="flex justify-center p-8"><Loader2 className="animate-spin w-8 h-8 text-[#006a55]" /></div>
-            ) : orders.length === 0 ? (
+            {orders.length === 0 ? (
               <div className="bg-white p-8 rounded-xl border-2 border-gray-100 shadow-sm text-center">
                 <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-gray-900 mb-2">No Orders Yet</h3>

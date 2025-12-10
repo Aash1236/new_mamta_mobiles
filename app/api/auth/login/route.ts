@@ -9,39 +9,35 @@ export async function POST(request: Request) {
     const { email, password } = await request.json();
 
     const user = await User.findOne({ email });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    if (!user.password) {
-        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!user.password) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
+    if (!isMatch) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+
+    // ✅ FIX: Send the token (user._id) in the body AND the cookie
+    const token = user._id.toString();
 
     const response = NextResponse.json({ 
       message: "Login successful",
+      token: token, // <--- SENDING TOKEN TO FRONTEND
       user: { name: user.name, email: user.email, role: user.role }
     });
 
-    // ✅ FIX: Add 'secure' and 'sameSite' flags for Vercel
     const isProduction = process.env.NODE_ENV === "production";
 
-    response.cookies.set("user_token", user._id.toString(), {
+    // Keep Cookie for Middleware/Admin
+    response.cookies.set("user_token", token, {
       httpOnly: true,
       path: "/",
-      secure: isProduction, // ✅ REQUIRED for HTTPS
-      sameSite: "lax",      // ✅ Recommended for login handling
-      // No maxAge (Session Cookie)
+      secure: isProduction,
+      sameSite: "lax",
     });
 
     if (user.role === "admin") {
       response.cookies.set("admin_token", "authenticated", {
         httpOnly: true,
-        secure: isProduction, // ✅ REQUIRED for HTTPS
+        secure: isProduction,
         path: "/",
         sameSite: "lax",
       });

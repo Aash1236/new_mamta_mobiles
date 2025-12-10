@@ -15,11 +15,15 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchUserData() {
       try {
-        // ✅ THE FIX: Add credentials: "include"
-        // This forces the browser to send the secure cookie to Vercel
+        // ✅ FIX: Get token from sessionStorage
+        const token = sessionStorage.getItem("mamta_token");
+
+        // ✅ FIX: Send token in 'Authorization' header
         const userRes = await fetch("/api/auth/me", {
-          headers: { "Content-Type": "application/json" },
-          credentials: "include", 
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": token || "" 
+          },
         });
         
         if (!userRes.ok) {
@@ -29,7 +33,7 @@ export default function ProfilePage() {
         const userData = await userRes.json();
         setUser(userData);
 
-        // Fetch Orders
+        // Fetch Orders for this user
         const orderRes = await fetch("/api/orders/user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -40,7 +44,10 @@ export default function ProfilePage() {
           setOrders(await orderRes.json());
         }
       } catch (error) {
-        // If auth fails, redirect to login
+        console.error("Profile load failed:", error);
+        // If auth fails, clear session and redirect
+        sessionStorage.removeItem("isLoggedIn");
+        sessionStorage.removeItem("mamta_token");
         router.push("/login");
       } finally {
         setLoading(false);
@@ -51,13 +58,16 @@ export default function ProfilePage() {
   }, [router]);
 
   const handleLogout = async () => {
-    // Also add credentials here to ensure the cookie is actually deleted on server
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    // Call logout API to clear server cookies
+    await fetch("/api/auth/logout", { method: "POST" });
     
+    // Clear client storage
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem("isLoggedIn");
       sessionStorage.removeItem("user_info");
+      sessionStorage.removeItem("mamta_token");
     }
+    
     toast.success("Logged out successfully");
     router.push("/login");
   };
@@ -80,7 +90,7 @@ export default function ProfilePage() {
 
         <div className="grid md:grid-cols-3 gap-8">
           
-          {/* User Info */}
+          {/* User Info & Admin Button */}
           <div className="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm h-fit space-y-6">
             <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 bg-[#006a55]/10 rounded-full flex items-center justify-center text-[#006a55] mb-4">

@@ -42,14 +42,17 @@ export default function LoginPage() {
         } else {
           toast.success("Welcome back!");
           
-          // ✅ CHANGE: Use sessionStorage (Clears on browser close)
+          // ✅ FIX: Save Auth Data to Session Storage
           sessionStorage.setItem("isLoggedIn", "true");
+          if (data.token) {
+             sessionStorage.setItem("mamta_token", data.token); // Save Token
+          }
           sessionStorage.setItem("user_info", JSON.stringify(data.user));
           
           router.push("/");
         }
       } else {
-        toast.error(data.error);
+        toast.error(data.error || "Authentication failed");
       }
     } catch (error) {
       toast.error("Something went wrong");
@@ -74,19 +77,43 @@ export default function LoginPage() {
           {!isLogin && (
             <div className="relative">
               <User className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-              <input name="name" placeholder="Full Name" onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" required={!isLogin} />
+              <input 
+                name="name" 
+                placeholder="Full Name" 
+                onChange={handleChange} 
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" 
+                required={!isLogin} 
+              />
             </div>
           )}
           <div className="relative">
             <Mail className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-            <input name="email" type="email" placeholder="Email Address" onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" required />
+            <input 
+              name="email" 
+              type="email" 
+              placeholder="Email Address" 
+              onChange={handleChange} 
+              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" 
+              required 
+            />
           </div>
           <div className="relative">
             <Lock className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-            <input name="password" type="password" placeholder="Password" onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" required />
+            <input 
+              name="password" 
+              type="password" 
+              placeholder="Password" 
+              onChange={handleChange} 
+              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#006a55] outline-none text-gray-900 bg-white" 
+              required 
+            />
           </div>
 
-          <button type="submit" disabled={loading} className="w-full bg-[#006a55] text-white py-3.5 rounded-xl font-bold text-lg hover:bg-[#005544] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-70">
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full bg-[#006a55] text-white py-3.5 rounded-xl font-bold text-lg hover:bg-[#005544] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-70"
+          >
             {loading ? <Loader2 className="animate-spin w-5 h-5" /> : (isLogin ? "Log In" : "Sign Up")}
             {!loading && <ArrowRight className="w-5 h-5" />}
           </button>

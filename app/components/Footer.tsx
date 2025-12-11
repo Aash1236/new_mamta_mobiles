@@ -40,7 +40,7 @@ export default function Footer() {
               Mamta <span className="text-white text-lg tracking-[0.3em] font-medium">Mobiles</span>
             </h2>
             <p className="text-gray-400 max-w-sm text-sm leading-relaxed">
-              India's Next Gen Mobile Accessory Brand. We provide premium protection and style for your beloved devices.
+              India&apos;s Next Gen Mobile Accessory Brand. We provide premium protection and style for your beloved devices.
             </p>
             <div className="flex gap-4 pt-2">
               <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-[#2CA089] transition-colors group">

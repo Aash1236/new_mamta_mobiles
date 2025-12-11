@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   await connectDB();
   try {
     const body = await request.json();
-    const newOrder = await Order.create(body);
+    const newOrder: any = await Order.create(body);
     return NextResponse.json({ success: true, orderId: newOrder._id }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: "Order creation failed" }, { status: 500 });

@@ -13,10 +13,9 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   
-  // ✅ NEW: Payment Method State (Default: COD)
+  // Payment Method State
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("COD");
 
-  // ✅ FIXED: Form includes 'pincode' and 'state'
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -29,7 +28,6 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    // ✅ UNIVERSAL FIX: Check BOTH LocalStorage & SessionStorage
     let storedUser = null;
     if (typeof window !== 'undefined') {
        storedUser = localStorage.getItem("user_info") || sessionStorage.getItem("user_info");
@@ -58,27 +56,23 @@ export default function CheckoutPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ MOCK PAYMENT HANDLER (Simulates success without Razorpay keys)
+  // MOCK PAYMENT HANDLER
   const handleOnlinePayment = async (orderData: any) => {
     setLoading(true);
-    
-    // Simulate processing delay
     toast.loading("Redirecting to secure gateway...", { id: "payment" });
     
     setTimeout(async () => {
       toast.dismiss("payment");
       toast.success("Payment Successful! (Demo Mode)");
 
-      // Create a fake Transaction ID
       const mockPaymentId = "pay_demo_" + Math.random().toString(36).substring(7);
 
-      // Save Order as "Paid"
       await saveOrderToDB({
         ...orderData,
         paymentId: mockPaymentId,
-        status: "Paid", // Automatically mark as Paid
+        status: "Paid", 
       });
-    }, 2500); // 2.5 second delay for realism
+    }, 2500); 
   };
 
   const saveOrderToDB = async (finalOrderData: any) => {
@@ -116,7 +110,7 @@ export default function CheckoutPage() {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
-        image: item.image
+        image: item.image // We send whatever image string we have to the backend
       })),
       totalAmount: getCartTotal(),
       status: "Pending",
@@ -210,7 +204,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* ✅ NEW: Payment Method (Styled like Premium Cards) */}
+            {/* Payment Method */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
                 <div className="w-10 h-10 bg-[#006a55]/10 rounded-full flex items-center justify-center text-[#006a55]"><CreditCard className="w-5 h-5" /></div>
@@ -259,18 +253,35 @@ export default function CheckoutPage() {
               <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
               
               <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                {cart.map((item) => (
-                  <div key={item._id} className="flex gap-4 items-center">
-                    <div className="relative w-16 h-16 bg-gray-50 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                      <Image src={item.image} alt={item.name} fill className="object-contain p-1" />
+                {cart.map((item) => {
+                  // ✅ FIX: TypeScript Build Error - Ensure src is never undefined
+                  let validImage = "https://via.placeholder.com/150?text=No+Image";
+                  if (item.image && item.image.trim() !== "") {
+                    validImage = item.image;
+                  } else if (item.images && item.images.length > 0 && item.images[0].trim() !== "") {
+                    validImage = item.images[0];
+                  }
+
+                  return (
+                    <div key={item._id} className="flex gap-4 items-center">
+                      <div className="relative w-16 h-16 bg-gray-50 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                        {/* ✅ FIX: Added unoptimized to allow fallback placeholders */}
+                        <Image 
+                          src={validImage} 
+                          alt={item.name} 
+                          fill 
+                          className="object-contain p-1 mix-blend-multiply" 
+                          unoptimized={true} 
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-800 truncate">{item.name}</p>
+                        <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                      </div>
+                      <p className="text-sm font-bold text-[#006a55]">₹{(item.price * item.quantity).toLocaleString()}</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-800 truncate">{item.name}</p>
-                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                    </div>
-                    <p className="text-sm font-bold text-[#006a55]">₹{(item.price * item.quantity).toLocaleString()}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="space-y-3 pt-6 border-t border-gray-100">

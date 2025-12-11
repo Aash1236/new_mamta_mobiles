@@ -1,12 +1,12 @@
-"use client"; // ✅ This keeps your interactivity working
+"use client";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+// ✅ FIX: Correct path to your CartContext
 import { useCart } from "../../context/CartContext"; 
 import { Star, Truck, ShieldCheck, ArrowRight, Minus, Plus, ShoppingBag } from "lucide-react";
 import toast from "react-hot-toast";
 
-// Interface for Product Data
 interface Product {
   _id: string;
   name: string;
@@ -27,7 +27,6 @@ export default function ProductClient({ id }: { id: string }) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
 
-  // --- FETCH DATA (Client Side) ---
   useEffect(() => {
     async function fetchProduct() {
       try {
@@ -51,12 +50,13 @@ export default function ProductClient({ id }: { id: string }) {
     }
   };
 
-  // --- LOADING STATE ---
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#006a55]"></div></div>;
   
   if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found</div>;
 
-  // --- MAIN UI ---
+  // Helper for safe image
+  const imageUrl = product.image && product.image.trim() !== "" ? product.image : "https://placehold.co/600x600?text=No+Image";
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 font-sans">
       <div className="container mx-auto max-w-6xl">
@@ -65,12 +65,13 @@ export default function ProductClient({ id }: { id: string }) {
             
             {/* Left: Image Gallery */}
             <div className="space-y-4">
-              <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+              {/* ✅ VISIBILITY FIX: Changed bg-gray-50 to bg-gray-200 so white products pop */}
+              <div className="relative aspect-square bg-gray-200 rounded-xl overflow-hidden border border-gray-100">
                 <Image 
-                  src={product.image || "https://placehold.co/600x600?text=No+Image"} 
+                  src={imageUrl} 
                   alt={product.name} 
                   fill 
-                  className="object-contain p-8"
+                  className="object-contain p-8 mix-blend-multiply" // Added mix-blend-multiply to help transparent pngs blend better
                   priority 
                 />
               </div>

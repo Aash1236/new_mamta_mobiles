@@ -7,6 +7,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast"; 
+import WhatsAppBtn from "./components/WhatsAppBtn";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/logo.png",
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -32,6 +34,7 @@ export default function RootLayout({
           
           <Navbar />
           {children}
+          <WhatsAppBtn />
           <Footer />
         </CartProvider>
       </body>

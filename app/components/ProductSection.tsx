@@ -12,8 +12,8 @@ interface Product {
   category: string;
   price: number;
   rating: number;
-  images: string[]; // Support array
-  image?: string;   // Support string
+  images: string[]; 
+  image?: string;   
 }
 
 interface ProductSectionProps {
@@ -26,11 +26,10 @@ export default function ProductSection({ title, category, sort }: ProductSection
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ CRASH FIX: Safe Image Helper
+  // Safe Image Helper
   const getProductImage = (product: Product) => {
     if (product.images && product.images.length > 0 && product.images[0] !== "") return product.images[0];
     if (product.image && product.image !== "") return product.image;
-    // Fallback if empty
     return "https://placehold.co/600x600?text=No+Image";
   };
 
@@ -41,19 +40,16 @@ export default function ProductSection({ title, category, sort }: ProductSection
         if (res.ok) {
           let data = await res.json();
 
-          // ✅ FILTER LOGIC
+          // FILTER LOGIC
           if (category) {
             const lowerCat = category.toLowerCase();
-
             if (lowerCat === "mobiles") {
-              // Show ONLY Mobiles
               data = data.filter((p: any) => 
                 p.category.toLowerCase() === 'mobiles' || 
                 p.category.toLowerCase() === 'smartphones'
               );
             } 
             else if (lowerCat === "non-mobile") {
-              // Show EVERYTHING ELSE (Accessories, Cases, Chargers)
               data = data.filter((p: any) => 
                 p.category.toLowerCase() !== 'mobiles' && 
                 p.category.toLowerCase() !== 'smartphones'
@@ -97,15 +93,15 @@ export default function ProductSection({ title, category, sort }: ProductSection
             <Link key={product._id} href={`/product/${product._id}`} className="group">
               <div className="bg-white p-4 rounded-xl border-2 border-gray-100 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col hover:border-[#006a55]/20">
                 
-                {/* Image Area */}
-                <div className="relative aspect-square bg-white rounded-lg mb-4 overflow-hidden flex items-center justify-center">
+                {/* Image Area - ✅ VISIBILITY FIX: bg-gray-200 */}
+                <div className="relative aspect-square bg-gray-200 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
                   <Image 
-                    src={getProductImage(product)} // ✅ Use Safe Helper
+                    src={getProductImage(product)} 
                     alt={product.name} 
                     fill 
-                    className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+                    className="object-contain p-4 group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
                   />
-                  <button className="absolute bottom-4 right-4 bg-white p-2.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:bg-[#006a55] hover:text-white">
+                  <button className="text-gray-900 absolute bottom-4 right-4 bg-white p-2.5 rounded-full shadow-md group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:bg-[#006a55] hover:text-white">
                     <ShoppingBag className="w-4 h-4" />
                   </button>
                 </div>

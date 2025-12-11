@@ -26,10 +26,17 @@ export default function ProductSection({ title, category, sort }: ProductSection
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Safe Image Helper
+  // ✅ CRASH-PROOF IMAGE HELPER
   const getProductImage = (product: Product) => {
-    if (product.images && product.images.length > 0 && product.images[0] !== "") return product.images[0];
-    if (product.image && product.image !== "") return product.image;
+    // 1. Check 'images' array: Must exist, have items, and the first item must be a real string
+    if (product.images && product.images.length > 0 && product.images[0]?.trim()) {
+      return product.images[0];
+    }
+    // 2. Check 'image' string: Must exist and be a real string
+    if (product.image && product.image?.trim()) {
+      return product.image;
+    }
+    // 3. Fallback
     return "https://placehold.co/600x600?text=No+Image";
   };
 
@@ -40,27 +47,36 @@ export default function ProductSection({ title, category, sort }: ProductSection
         if (res.ok) {
           let data = await res.json();
 
-          // FILTER LOGIC
+          // ✅ 1. FILTERING LOGIC
           if (category) {
             const lowerCat = category.toLowerCase();
+
             if (lowerCat === "mobiles") {
+              // Only Show Mobiles
               data = data.filter((p: any) => 
-                p.category.toLowerCase() === 'mobiles' || 
-                p.category.toLowerCase() === 'smartphones'
+                p.category?.toLowerCase() === 'mobiles' || 
+                p.category?.toLowerCase() === 'smartphones'
               );
             } 
             else if (lowerCat === "non-mobile") {
+              // Show Everything EXCEPT Mobiles
               data = data.filter((p: any) => 
-                p.category.toLowerCase() !== 'mobiles' && 
-                p.category.toLowerCase() !== 'smartphones'
+                p.category?.toLowerCase() !== 'mobiles' && 
+                p.category?.toLowerCase() !== 'smartphones'
               );
+            }
+            else {
+              // ✅ Standard Filter (e.g., if you ask for 'Cases')
+              data = data.filter((p: any) => p.category?.toLowerCase() === lowerCat);
             }
           }
 
+          // ✅ 2. SORTING LOGIC
           if (sort === "new") {
             data = data.reverse(); 
           }
 
+          // Take top 4
           setProducts(data.slice(0, 4));
         }
       } catch (error) {
@@ -93,7 +109,7 @@ export default function ProductSection({ title, category, sort }: ProductSection
             <Link key={product._id} href={`/product/${product._id}`} className="group">
               <div className="bg-white p-4 rounded-xl border-2 border-gray-100 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col hover:border-[#006a55]/20">
                 
-                {/* Image Area - ✅ VISIBILITY FIX: bg-gray-200 */}
+                {/* Image Area */}
                 <div className="relative aspect-square bg-gray-200 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
                   <Image 
                     src={getProductImage(product)} 
@@ -101,7 +117,8 @@ export default function ProductSection({ title, category, sort }: ProductSection
                     fill 
                     className="object-contain p-4 group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
                   />
-                  <button className="text-gray-900 absolute bottom-4 right-4 bg-white p-2.5 rounded-full shadow-md group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:bg-[#006a55] hover:text-white">
+                  {/* Cart button always visible */}
+                  <button className="absolute bottom-4 right-4 bg-white text-[#006a55] p-2.5 rounded-full shadow-md border border-gray-100 hover:bg-[#006a55] hover:text-white transition-all z-10">
                     <ShoppingBag className="w-4 h-4" />
                   </button>
                 </div>

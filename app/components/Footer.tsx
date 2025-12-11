@@ -1,8 +1,32 @@
+"use client";
+
 import Link from 'next/link';
-import { Facebook, Instagram, Twitter, Mail, MapPin, Phone, ArrowRight } from 'lucide-react';
-import { FOOTER_LINKS } from '../data/constants';
+import { Facebook, Instagram, Twitter, Mail, MapPin, Phone } from 'lucide-react';
 
 export default function Footer() {
+  
+  // ✅ Defined links locally to ensure they point to the correct new pages
+  const footerLinks = {
+    shop: [
+      { name: 'All Products', href: '/shop/all' },
+      { name: 'New Arrivals', href: '/shop/all' }, 
+      { name: 'Best Sellers', href: '/shop/all' },
+    ],
+    support: [
+      { name: 'My Account', href: '/profile' },
+      { name: 'Track Order', href: '/profile' },
+      // ✅ CONNECTED LEGAL PAGES
+      { name: 'Privacy Policy', href: '/privacy-policy' },
+      { name: 'Terms & Conditions', href: '/terms' },
+      { name: 'Refund Policy', href: '/refund-policy' },
+    ],
+    company: [
+      { name: 'About Us', href: '/about' },
+      { name: 'Partner With Us', href: '/partner' },
+      { name: 'Warranty Policy', href: '/warranty' },
+    ]
+  };
+
   return (
     <footer className="bg-[#111827] text-white pt-16 pb-8 border-t border-gray-800 font-sans">
       <div className="container mx-auto px-4">
@@ -55,7 +79,7 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-lg mb-6 text-[#2CA089]">Shop</h4>
             <ul className="space-y-3">
-              {FOOTER_LINKS.shop.map((link) => (
+              {footerLinks.shop.map((link) => (
                 <li key={link.name}>
                   <Link href={link.href} className="text-gray-400 hover:text-white text-sm transition-colors hover:translate-x-1 inline-block">
                     {link.name}
@@ -69,7 +93,7 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-lg mb-6 text-[#2CA089]">Support</h4>
             <ul className="space-y-3">
-              {FOOTER_LINKS.support.map((link) => (
+              {footerLinks.support.map((link) => (
                 <li key={link.name}>
                   <Link href={link.href} className="text-gray-400 hover:text-white text-sm transition-colors hover:translate-x-1 inline-block">
                     {link.name}
@@ -83,7 +107,7 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-lg mb-6 text-[#2CA089]">Company</h4>
             <ul className="space-y-3">
-              {FOOTER_LINKS.company.map((link) => (
+              {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link href={link.href} className="text-gray-400 hover:text-white text-sm transition-colors hover:translate-x-1 inline-block">
                     {link.name}
@@ -99,7 +123,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-gray-400">
                 <MapPin className="w-5 h-5 text-[#2CA089] shrink-0" />
-                <span>123 Market Street, Pune, Maharashtra, 411001</span>
+                <span>Shop No 1, Mamta Mobiles, Near Bus Stand, Pune, Maharashtra</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-400">
                 <Phone className="w-5 h-5 text-[#2CA089] shrink-0" />

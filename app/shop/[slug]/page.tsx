@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "../../context/CartContext"; 
-import { Star, ShoppingBag, Filter } from "lucide-react";
+import { Star, ShoppingBag, Filter, SearchX } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface Product {
@@ -20,8 +20,17 @@ interface Product {
   inStock: boolean;
 }
 
-export default function ShopPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params); // Next.js 15+ Params handling
+// ✅ FIX: Accept 'searchParams' to read the query URL
+export default function ShopPage({ 
+  params, 
+  searchParams 
+}: { 
+  params: Promise<{ slug: string }>, 
+  searchParams: Promise<{ search?: string }> 
+}) {
+  const { slug } = use(params);
+  const { search } = use(searchParams); // Unwraps the search query (e.g. "iPhone")
+
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +38,7 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
   
   const { addToCart } = useCart();
 
-  // ✅ CRASH-PROOF IMAGE HELPER
+  // Helper for images
   const getProductImage = (product: Product) => {
     if (product.images && product.images.length > 0 && product.images[0]?.trim()) {
       return product.images[0];
@@ -42,12 +51,13 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
 
   useEffect(() => {
     async function fetchProducts() {
+      setLoading(true);
       try {
         const res = await fetch('/api/products');
         if (res.ok) {
           let data: Product[] = await res.json();
           
-          // Filter based on slug (brand or category)
+          // 1. Filter by Category/Brand (Slug)
           if (slug !== 'all') {
             const term = slug.toLowerCase();
             data = data.filter(p => 
@@ -56,9 +66,21 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
               (term === 'mobiles' && (p.category.toLowerCase() === 'mobiles' || p.category.toLowerCase() === 'smartphones'))
             );
           }
+
+          // 2. ✅ NEW: Filter by Search Query (if it exists)
+          if (search) {
+            const query = search.toLowerCase();
+            data = data.filter(p => 
+              p.name.toLowerCase().includes(query) || 
+              p.brand.toLowerCase().includes(query) ||
+              p.category.toLowerCase().includes(query)
+            );
+          }
           
           setProducts(data);
-          setFilteredProducts(data);
+          
+          // Apply Sort immediately
+          applySort(data, sort);
         }
       } catch (error) {
         console.error("Failed to fetch products");
@@ -67,15 +89,20 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
       }
     }
     fetchProducts();
-  }, [slug]);
+  }, [slug, search]); // ✅ Re-run when Slug OR Search changes
 
-  // Handle Sorting
-  useEffect(() => {
-    let sorted = [...products];
-    if (sort === "low") sorted.sort((a, b) => a.price - b.price);
-    if (sort === "high") sorted.sort((a, b) => b.price - a.price);
-    // Default is usually 'newest' (relying on DB order or created date if available)
+  // Sort Logic
+  const applySort = (data: Product[], sortType: string) => {
+    let sorted = [...data];
+    if (sortType === "low") sorted.sort((a, b) => a.price - b.price);
+    if (sortType === "high") sorted.sort((a, b) => b.price - a.price);
+    // 'newest' relies on default order usually
     setFilteredProducts(sorted);
+  };
+
+  // Handle Sort Change
+  useEffect(() => {
+    applySort(products, sort);
   }, [sort, products]);
 
   if (loading) {
@@ -93,8 +120,10 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 capitalize">{slug.replace(/-/g, ' ')}</h1>
-            <p className="text-gray-500 text-sm mt-1">Showing {filteredProducts.length} results</p>
+            <h1 className="text-3xl font-extrabold text-gray-900 capitalize">
+              {search ? `Results for "${search}"` : slug.replace(/-/g, ' ')}
+            </h1>
+            <p className="text-gray-500 text-sm mt-1">Found {filteredProducts.length} items</p>
           </div>
           
           {/* Sort Dropdown */}
@@ -114,9 +143,15 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
 
         {/* Product Grid */}
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-20 text-gray-400">
-            <p className="text-xl">No products found in this category.</p>
-            <Link href="/" className="text-[#006a55] font-bold mt-4 inline-block hover:underline">Go Back Home</Link>
+          <div className="text-center py-20">
+            <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                <SearchX className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No products found</h3>
+            <p className="text-gray-500 mb-6">Try adjusting your search or filter to find what you're looking for.</p>
+            <Link href="/shop/all" className="bg-[#006a55] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#005544] transition-all shadow-lg shadow-[#006a55]/20">
+              Clear Filters
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -125,7 +160,6 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
                 <div className="bg-white p-4 rounded-xl border-2 border-gray-100 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col hover:border-[#006a55]/20 relative">
                   
                   {/* Image Container */}
-                  {/* ✅ FIX: bg-gray-200 for better white product visibility */}
                   <div className="relative aspect-square bg-gray-200 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
                     <Image 
                       src={getProductImage(product)} 
@@ -142,7 +176,7 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
                     <p className="text-gray-500 text-xs mb-3 uppercase font-bold tracking-wider">{product.brand}</p>
                     
                     <div className="mt-auto flex justify-between items-center">
-                      <span className="text-[#006a55] font-extrabold text-lg">₹{product.price.toLocaleString()}</span>
+                      <span className="text-lg font-extrabold text-[#006a55]">₹{product.price.toLocaleString()}</span>
                       <div className="flex items-center gap-1 text-xs text-gray-500 font-bold bg-gray-50 px-2 py-1 rounded-md">
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                         {product.rating || 4.5}
@@ -150,18 +184,18 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
                     </div>
                   </div>
 
-                  {/* ✅ FIX: Quick Add Button with QUANTITY: 1 */}
+                  {/* Quick Add Button */}
                   <button
                     onClick={(e) => {
                       e.preventDefault(); 
                       addToCart({ 
                         ...product, 
                         image: getProductImage(product), 
-                        quantity: 1 // ✅ FIXED: Explicitly set quantity
+                        quantity: 1 
                       });
                       toast.success("Added to Cart");
                     }}
-                    className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md text-[#006a55] hover:bg-[#006a55] hover:text-white transition-all z-10 opacity-100"
+                    className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md text-[#006a55] hover:bg-[#006a55] hover:text-white transition-all z-10"
                   >
                     <ShoppingBag className="w-4 h-4" />
                   </button>

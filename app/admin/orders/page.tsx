@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image"; // ✅ Import Image
-import { ArrowLeft, Eye, X, MapPin, Phone, Mail, Package, Clock, Truck, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Eye, X, MapPin, Phone, Mail, Package, Clock, Truck, CheckCircle, XCircle, Printer } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface Order {
@@ -84,6 +84,86 @@ export default function OrdersPage() {
       toast.error("Network error");
       fetchOrders(true); // Revert
     }
+  };
+
+  const printInvoice = (order: Order) => {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+
+    const invoiceContent = `
+      <html>
+        <head>
+          <title>Invoice #${order._id.slice(-6).toUpperCase()}</title>
+          <style>
+            body { font-family: sans-serif; padding: 40px; color: #333; }
+            .header { display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
+            .logo { font-size: 24px; font-weight: bold; color: #006a55; }
+            .invoice-details { text-align: right; }
+            .section { margin-bottom: 30px; }
+            .section-title { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+            table { w-full; width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { text-align: left; padding: 10px; background: #f9fafb; font-size: 12px; text-transform: uppercase; }
+            td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+            .total { text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px; color: #006a55; }
+            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #aaa; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">MAMTA MOBILES</div>
+            <div class="invoice-details">
+              <p><strong>Invoice #${order._id.slice(-6).toUpperCase()}</strong></p>
+              <p>Date: ${new Date(order.createdAt).toLocaleDateString()}</p>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Bill To</div>
+            <p><strong>${order.customer?.firstName} ${order.customer?.lastName}</strong></p>
+            <p>${order.customer?.address}</p>
+            <p>${order.customer?.city}, ${order.customer?.state} - ${order.customer?.pincode}</p>
+            <p>Phone: ${order.customer?.phone}</p>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th style="text-align:right">Price</th>
+                <th style="text-align:right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items.map(item => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.quantity}</td>
+                  <td style="text-align:right">₹${item.price.toLocaleString()}</td>
+                  <td style="text-align:right">₹${(item.price * item.quantity).toLocaleString()}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="total">
+            Total Amount: ₹${order.totalAmount?.toLocaleString()}
+          </div>
+
+          <div class="footer">
+            Thank you for shopping with Mamta Mobiles!<br/>
+            Contact us: support@mamtamobiles.com
+          </div>
+          
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(invoiceContent);
+    printWindow.document.close();
   };
 
   if (loading && orders.length === 0) return <div className="h-screen flex items-center justify-center text-[#006a55] font-bold animate-pulse">Loading Orders...</div>;
@@ -175,11 +255,20 @@ export default function OrdersPage() {
             <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-fade-in-up overflow-hidden max-h-[90vh] overflow-y-auto">
               
               <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
-                <h3 className="font-bold text-lg text-gray-900">Delivery Details</h3>
-                <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-200 rounded-full">
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
+  <div className="flex items-center gap-4">
+    <h3 className="font-bold text-lg text-gray-900">Delivery Details</h3>
+    {/* ✅ NEW: Print Button */}
+    <button 
+      onClick={() => selectedOrder && printInvoice(selectedOrder)}
+      className="flex items-center gap-1 text-xs font-bold text-[#006a55] border border-[#006a55] px-3 py-1 rounded-full hover:bg-[#006a55] hover:text-white transition-all"
+    >
+      <Printer className="w-3 h-3" /> Print Invoice
+    </button>
+  </div>
+  <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-200 rounded-full">
+    <X className="w-5 h-5 text-gray-500" />
+  </button>
+</div>
 
               <div className="p-6 space-y-6">
                 

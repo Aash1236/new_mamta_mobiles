@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Facebook, Instagram, Twitter, Mail, MapPin, Phone } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Footer() {
   
@@ -61,13 +62,16 @@ export default function Footer() {
             <p className="text-gray-400 text-sm mb-4">Subscribe for exclusive offers and new launches.</p>
             <div className="flex gap-2">
               <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="bg-gray-800 border-none text-white px-4 py-3 rounded-lg w-full focus:ring-2 focus:ring-[#2CA089] outline-none placeholder:text-gray-500"
-              />
-              <button className="bg-[#2CA089] text-white px-6 py-3 rounded-lg hover:bg-[#23806d] transition-colors font-bold">
-                Subscribe
-              </button>
+    type="email" 
+    placeholder="Enter your email" 
+    className="bg-gray-800 border-none text-white px-4 py-3 rounded-lg w-full focus:ring-2 focus:ring-[#2CA089] outline-none placeholder:text-gray-500"
+  />
+  <button 
+    onClick={() => toast.success("Thanks for subscribing! Check your inbox.")} 
+    className="bg-[#2CA089] text-white px-6 py-3 rounded-lg hover:bg-[#23806d] transition-colors font-bold"
+  >
+    Subscribe
+  </button>
             </div>
           </div>
         </div>

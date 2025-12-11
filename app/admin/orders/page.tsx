@@ -1,241 +1,257 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { 
-  Package, 
-  Eye, 
-  Calendar, 
-  User, 
-  Loader2, 
-  ArrowLeft, 
-  Plus, 
-  Tag, 
-  Image as ImageIcon, 
-  Menu, 
-  ShieldCheck,
-  RefreshCw 
-} from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import Image from "next/image"; // ✅ Import Image
+import { ArrowLeft, Eye, X, MapPin, Phone, Mail, Package, Clock, Truck, CheckCircle, XCircle } from "lucide-react";
+import toast from "react-hot-toast";
 
-export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
+interface Order {
+  _id: string;
+  createdAt: string;
+  totalAmount: number;
+  status: string;
+  paymentMethod?: string;
+  customer: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
+  items: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+    image: string; // ✅ Added Image support
+  }>;
+}
+
+export default function OrdersPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  // Fetch Orders Function
-  const fetchOrders = async (isAutoRefresh = false) => {
+  // LIVE UPDATES
+  useEffect(() => {
+    fetchOrders(); 
+    const interval = setInterval(() => fetchOrders(true), 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchOrders = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await fetch("/api/orders");
       if (res.ok) {
         const data = await res.json();
-        setOrders(data);
+        // Sort Newest First
+        const sortedOrders = data.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setOrders(sortedOrders);
         setLastUpdated(new Date());
-        if (!isAutoRefresh && !loading) toast.success("Dashboard Updated");
       }
     } catch (error) {
       console.error("Failed to load orders");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
-  // ✅ REAL-TIME UPDATES (Polling every 5 seconds)
-  useEffect(() => {
-    fetchOrders(); // Initial Load
-
-    const interval = setInterval(() => {
-      fetchOrders(true); // Silent update
-    }, 5000); // 5 Seconds
-
-    return () => clearInterval(interval); // Cleanup on exit
-  }, []);
-
-  // Handle Status Change
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
+  const updateStatus = async (orderId: string, newStatus: string) => {
+    // Optimistic Update
+    setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+    
     try {
-      // Optimistic UI Update
-      setOrders(orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
-
-      const res = await fetch(`/api/orders/${orderId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
+      const res = await fetch("/api/orders", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, status: newStatus }),
       });
-
+      
       if (res.ok) {
-        toast.success("Order Status Updated");
+        toast.success("Status Updated");
       } else {
-        toast.error("Failed to update");
-        fetchOrders(); // Revert
+        toast.error("Update failed");
+        fetchOrders(true); // Revert
       }
-    } catch (error) {
-      toast.error("Error updating status");
+    } catch (e) {
+      toast.error("Network error");
+      fetchOrders(true); // Revert
     }
   };
 
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin w-10 h-10 text-[#006a55]" />
-      </div>
-    );
-  }
+  if (loading && orders.length === 0) return <div className="h-screen flex items-center justify-center text-[#006a55] font-bold animate-pulse">Loading Orders...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 font-sans">
-      <Toaster position="bottom-center" />
-      <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen bg-gray-50 p-8 font-sans">
+      <div className="max-w-7xl mx-auto">
         
-        {/* --- HEADER --- */}
-        <div className="flex flex-col items-center justify-center mb-12 space-y-8">
-          
-          <div className="text-center relative">
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">Admin Dashboard</h1>
-            <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-400 mt-2">
-              <span className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-full animate-pulse">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span> Live Updates
-              </span>
-              <span>Last checked: {lastUpdated.toLocaleTimeString()}</span>
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-4">
+            <Link href="/admin" className="p-2 bg-white rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </Link>
+            <div>
+              <h1 className="text-3xl font-extrabold text-gray-900">Order Management</h1>
+              <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                Live Updates • {lastUpdated.toLocaleTimeString()}
+              </div>
             </div>
           </div>
-
-          {/* Row 1: Management Buttons */}
-          <div className="flex flex-wrap justify-center gap-3">
-            <Link href="/admin/products">
-              <button className="flex items-center gap-2 bg-white text-[#006a55] border-2 border-[#006a55]/20 hover:border-[#006a55] px-5 py-2.5 rounded-xl font-bold hover:bg-[#006a55] hover:text-white transition-all active:scale-95 shadow-sm">
-                <Package className="w-5 h-5" /> Products
-              </button>
-            </Link>
-            
-            <Link href="/admin/users">
-              <button className="flex items-center gap-2 bg-white text-[#006a55] border-2 border-[#006a55]/20 hover:border-[#006a55] px-5 py-2.5 rounded-xl font-bold hover:bg-[#006a55] hover:text-white transition-all active:scale-95 shadow-sm">
-                <ShieldCheck className="w-5 h-5" /> Users
-              </button>
-            </Link>
-
-            <Link href="/admin/brands">
-              <button className="flex items-center gap-2 bg-white text-[#006a55] border-2 border-[#006a55]/20 hover:border-[#006a55] px-5 py-2.5 rounded-xl font-bold hover:bg-[#006a55] hover:text-white transition-all active:scale-95 shadow-sm">
-                <Tag className="w-5 h-5" /> Brands
-              </button>
-            </Link>
-
-            <Link href="/admin/banners">
-              <button className="flex items-center gap-2 bg-white text-[#006a55] border-2 border-[#006a55]/20 hover:border-[#006a55] px-5 py-2.5 rounded-xl font-bold hover:bg-[#006a55] hover:text-white transition-all active:scale-95 shadow-sm">
-                <ImageIcon className="w-5 h-5" /> Banners
-              </button>
-            </Link>
-
-            <Link href="/admin/navigation">
-              <button className="flex items-center gap-2 bg-white text-[#006a55] border-2 border-[#006a55]/20 hover:border-[#006a55] px-5 py-2.5 rounded-xl font-bold hover:bg-[#006a55] hover:text-white transition-all active:scale-95 shadow-sm">
-                <Menu className="w-5 h-5" /> Navigation
-              </button>
-            </Link>
-          </div>
-
-          {/* Row 2: Primary Actions */}
-          <div className="flex items-center gap-4">
-            <Link href="/admin/add-product">
-              <button className="flex items-center gap-2 bg-[#006a55] text-white px-8 py-3 rounded-full font-bold hover:bg-[#005544] transition-all shadow-lg shadow-[#006a55]/20 active:scale-95">
-                <Plus className="w-5 h-5" /> Add New Product
-              </button>
-            </Link>
-
-            <Link href="/">
-              <button className="flex items-center gap-2 text-gray-500 hover:text-[#006a55] font-bold px-6 py-3 transition-colors">
-                <ArrowLeft className="w-4 h-4" /> Back to Store
-              </button>
-            </Link>
-          </div>
+          <Link href="/admin" className="text-[#006a55] font-bold hover:underline text-sm">
+            Back to Dashboard
+          </Link>
         </div>
 
-        {/* --- STATS CARDS --- */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm">
-            <h3 className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Total Orders</h3>
-            <p className="text-4xl font-extrabold text-[#006a55]">{orders.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm">
-            <h3 className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Total Revenue</h3>
-            <p className="text-4xl font-extrabold text-[#006a55]">
-              ₹{orders.reduce((acc, order) => acc + order.totalAmount, 0).toLocaleString()}
-            </p>
-          </div>
-          <div className="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm">
-            <h3 className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Pending Orders</h3>
-            <p className="text-4xl font-extrabold text-orange-500">
-              {orders.filter(o => o.status === 'Pending').length}
-            </p>
-          </div>
-        </div>
-
-        {/* --- ORDERS TABLE --- */}
-        <div className="bg-white rounded-xl border-2 border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-[#006a55] text-white">
-                <tr>
-                  <th className="p-4 text-sm font-bold uppercase tracking-wider">Order ID</th>
-                  <th className="p-4 text-sm font-bold uppercase tracking-wider">Customer</th>
-                  <th className="p-4 text-sm font-bold uppercase tracking-wider">Total</th>
-                  <th className="p-4 text-sm font-bold uppercase tracking-wider">Status</th>
-                  <th className="p-4 text-sm font-bold uppercase tracking-wider text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {orders.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="p-12 text-center text-gray-400 font-medium">
-                      No orders found yet.
-                    </td>
-                  </tr>
-                ) : (
-                  orders.map((order) => (
-                    <tr key={order._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-4 text-sm font-medium text-gray-600 font-mono">
-                        #{order._id.substring(order._id.length - 6).toUpperCase()}
-                      </td>
-                      <td className="p-4">
-                        <p className="text-sm font-bold text-gray-900">{order.customer.firstName} {order.customer.lastName}</p>
-                        <p className="text-xs text-gray-500">{order.customer.email}</p>
-                      </td>
-                      <td className="p-4 text-sm font-bold text-[#006a55]">
-                        ₹{order.totalAmount.toLocaleString()}
-                      </td>
-                      
-                      {/* STATUS DROPDOWN */}
-                      <td className="p-4">
+        {/* Orders Table */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full text-left text-sm text-gray-500">
+            <thead className="bg-gray-50 text-xs uppercase font-bold text-gray-400">
+              <tr>
+                <th className="p-4">Order ID</th>
+                <th className="p-4">Date</th>
+                <th className="p-4">Customer</th>
+                <th className="p-4">Total</th>
+                <th className="p-4">Status</th>
+                <th className="p-4 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {orders.map((order) => (
+                <tr key={order._id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="p-4 font-mono font-bold text-gray-700">#{order._id.slice(-6).toUpperCase()}</td>
+                  <td className="p-4">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td className="p-4 font-bold text-gray-800">{order.customer?.firstName} {order.customer?.lastName}</td>
+                  <td className="p-4 text-[#006a55] font-bold">₹{order.totalAmount?.toLocaleString()}</td>
+                  <td className="p-4">
+                    <div className="relative inline-block w-full min-w-[140px]">
                         <select 
                           value={order.status}
-                          onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border-2 outline-none cursor-pointer ${
-                            order.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                            order.status === 'Delivered' ? 'bg-green-50 text-green-700 border-green-200' :
-                            'bg-gray-50 text-gray-700 border-gray-200'
-                          }`}
+                          onChange={(e) => updateStatus(order._id, e.target.value)}
+                          className={`
+                            appearance-none w-full px-4 py-2 rounded-lg text-xs font-bold border-2 cursor-pointer outline-none transition-all
+                            ${order.status === 'Delivered' ? 'bg-green-50 text-green-700 border-green-100 hover:border-green-200' :
+                              order.status === 'Cancelled' ? 'bg-red-50 text-red-700 border-red-100 hover:border-red-200' :
+                              order.status === 'Shipped' ? 'bg-purple-50 text-purple-700 border-purple-100 hover:border-purple-200' :
+                              'bg-yellow-50 text-yellow-700 border-yellow-100 hover:border-yellow-200'}
+                          `}
                         >
-                          <option value="Pending">Pending</option>
-                          <option value="Processing">Processing</option>
-                          <option value="Shipped">Shipped</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Cancelled">Cancelled</option>
+                          <option value="Pending">🕒 Pending</option>
+                          <option value="Processing">⚙️ Processing</option>
+                          <option value="Shipped">🚚 Shipped</option>
+                          <option value="Delivered">✅ Delivered</option>
+                          <option value="Cancelled">❌ Cancelled</option>
                         </select>
-                      </td>
-
-                      <td className="p-4 text-right">
-                        <Link href={`/order-success/${order._id}`}>
-                          <button className="inline-flex items-center gap-1 text-xs font-bold text-[#006a55] border-2 border-[#006a55]/20 hover:border-[#006a55] px-4 py-1.5 rounded-lg transition-all">
-                            <Eye className="w-3 h-3" /> View
-                          </button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </td>
+                  <td className="p-4 text-center">
+                    <button 
+                      onClick={() => setSelectedOrder(order)}
+                      className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-1 mx-auto"
+                    >
+                      <Eye className="w-3 h-3" /> Details
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+
+        {/* ✅ ENHANCED DETAILS MODAL */}
+        {selectedOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-fade-in-up overflow-hidden max-h-[90vh] overflow-y-auto">
+              
+              <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+                <h3 className="font-bold text-lg text-gray-900">Delivery Details</h3>
+                <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-200 rounded-full">
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                
+                {/* Contact Info */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-gray-700">
+                    <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center"><Package className="w-4 h-4"/></div>
+                    <div><p className="text-xs text-gray-400 font-bold uppercase">Customer</p><p className="font-bold">{selectedOrder.customer?.firstName} {selectedOrder.customer?.lastName}</p></div>
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-700">
+                    <div className="w-8 h-8 bg-green-50 text-green-600 rounded-full flex items-center justify-center"><Phone className="w-4 h-4"/></div>
+                    <div><p className="text-xs text-gray-400 font-bold uppercase">Phone</p><p className="font-bold font-mono">{selectedOrder.customer?.phone}</p></div>
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-700">
+                    <div className="w-8 h-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center"><Mail className="w-4 h-4"/></div>
+                    <div><p className="text-xs text-gray-400 font-bold uppercase">Email</p><p className="font-bold">{selectedOrder.customer?.email}</p></div>
+                  </div>
+                </div>
+
+                {/* Shipping Address */}
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-red-500 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-400 font-bold uppercase mb-1">Shipping Address</p>
+                    <p className="text-gray-800 font-medium leading-relaxed">
+                      {selectedOrder.customer?.address}<br/>
+                      {selectedOrder.customer?.city}, {selectedOrder.customer?.state}<br/>
+                      <span className="font-bold text-black">PIN: {selectedOrder.customer?.pincode}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* ✅ VISIBLE PRODUCTS SECTION */}
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase mb-2">Items to Pack</p>
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item, i) => (
+                      <div key={i} className="flex gap-4 border-b border-gray-100 last:border-0 pb-3">
+                        {/* Product Image */}
+                        <div className="relative w-14 h-14 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                           {item.image ? (
+                             <Image src={item.image} alt={item.name} fill className="object-contain p-1" />
+                           ) : (
+                             <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Img</div>
+                           )}
+                        </div>
+                        {/* Product Info */}
+                        <div className="flex-1">
+                          <p className="font-bold text-gray-800 text-sm line-clamp-2">{item.name}</p>
+                          <div className="flex justify-between mt-1">
+                            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">Qty: {item.quantity}</span>
+                            <span className="text-sm font-bold text-[#006a55]">₹{item.price.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-4 mt-2 border-t border-gray-200">
+                    <span className="font-bold text-gray-900">Total Amount</span>
+                    <span className="font-extrabold text-[#006a55] text-lg">₹{selectedOrder.totalAmount?.toLocaleString()}</span>
+                  </div>
+                </div>
+
+              </div>
+              
+              <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                <button onClick={() => setSelectedOrder(null)} className="px-6 py-2 bg-gray-900 text-white rounded-lg font-bold hover:bg-gray-800">Close</button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

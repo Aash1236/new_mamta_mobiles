@@ -12,7 +12,7 @@ import CartDrawer from "./CartDrawer";
 // Interface for the Dynamic Menu Data
 interface NavGroup {
   _id: string;
-  type: "device" | "category";
+  type: string;
   title: string;
   items: string[];
   image?: string; 
@@ -83,8 +83,16 @@ export default function Navbar() {
         const res = await fetch("/api/navigation");
         if (res.ok) {
           const data = await res.json();
-          setDeviceMenu(data.filter((item: NavGroup) => item.type === "device"));
-          setCategoryMenu(data.filter((item: NavGroup) => item.type === "category"));
+          
+          // ✅ FIX: Use .includes() and .toLowerCase() 
+          // This ensures "Device Menu" from Admin matches "device" logic here
+          setDeviceMenu(data.filter((item: NavGroup) => 
+            item.type && item.type.toLowerCase().includes("device")
+          ));
+          
+          setCategoryMenu(data.filter((item: NavGroup) => 
+            item.type && item.type.toLowerCase().includes("category")
+          ));
         }
       } catch (error) {
         console.error("Failed to load navigation menus");

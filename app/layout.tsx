@@ -9,6 +9,7 @@ import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast"; 
 import WhatsAppBtn from "./components/WhatsAppBtn";
 import SalePopup from "./components/SalePopup";
+import SmoothScroll from "./components/SmoothScroll";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} antialiased`} suppressHydrationWarning={true}>
         <CartProvider>
+          <SmoothScroll>
           {/* 2. ADD TOASTER HERE */}
           <Toaster position="bottom-center" toastOptions={{ duration: 3000 }} />
           
@@ -38,6 +40,7 @@ export default function RootLayout({
           <SalePopup />
           <WhatsAppBtn />
           <Footer />
+          </SmoothScroll>
         </CartProvider>
       </body>
     </html>

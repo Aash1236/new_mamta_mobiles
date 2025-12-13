@@ -84,7 +84,7 @@ export default function Navbar() {
         if (res.ok) {
           const data = await res.json();
           
-          // ✅ FIX: Use .includes() and .toLowerCase() 
+          // FIX: Use .includes() and .toLowerCase() 
           // This ensures "Device Menu" from Admin matches "device" logic here
           setDeviceMenu(data.filter((item: NavGroup) => 
             item.type && item.type.toLowerCase().includes("device")
@@ -185,7 +185,7 @@ export default function Navbar() {
                              {col.items.map((item, i) => (
                                <li key={i}>
                                  <Link 
-                                   href={`/shop/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                                   href={`/shop/all?search=${encodeURIComponent(item)}`}
                                    className="text-[11px] text-gray-500 hover:text-[#006a55] cursor-pointer block"
                                  >
                                    {item}
@@ -227,7 +227,7 @@ export default function Navbar() {
                              {col.items.map((item, i) => (
                                <li key={i}>
                                  <Link 
-                                   href={`/shop/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                                   href={`/shop/all?search=${encodeURIComponent(item)}`}
                                    className="text-[11px] text-gray-500 hover:text-[#006a55] cursor-pointer block"
                                  >
                                    {item}

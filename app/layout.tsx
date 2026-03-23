@@ -8,7 +8,7 @@ import Footer from "./components/Footer";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast"; 
 import WhatsAppBtn from "./components/WhatsAppBtn";
-import SalePopup from "./components/SalePopup";
+//import SalePopup from "./components/SalePopup";
 import SmoothScroll from "./components/SmoothScroll";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -37,7 +37,7 @@ export default function RootLayout({
           
           <Navbar />
           {children}
-          /*<SalePopup /> */
+         
           <WhatsAppBtn />
           <Footer />
           </SmoothScroll>

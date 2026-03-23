@@ -14,7 +14,7 @@ export default function CheckoutPage() {
   const [user, setUser] = useState<any>(null);
   
   // Payment Method State
-  const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("COD");
+  const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE" | null>(null);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -153,11 +153,11 @@ export default function CheckoutPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-500 uppercase">First Name</label>
-                  <input required name="firstName" value={formData.firstName} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="John" />
+                  <input required name="firstName" value={formData.firstName} onChange={handleChange} className="text-black w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="First Name" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-500 uppercase">Last Name</label>
-                  <input required name="lastName" value={formData.lastName} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="Doe" />
+                  <input required name="lastName" value={formData.lastName} onChange={handleChange} className="text-black w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="Last Name" />
                 </div>
                 <div className="md:col-span-2 space-y-1">
                   <label className="text-xs font-bold text-gray-500 uppercase">Email Address</label>
@@ -170,7 +170,7 @@ export default function CheckoutPage() {
                   <label className="text-xs font-bold text-gray-500 uppercase">Phone Number</label>
                   <div className="relative">
                     <Phone className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-                    <input required name="phone" value={formData.phone} onChange={handleChange} className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="98765 43210" />
+                    <input required name="phone" value={formData.phone} onChange={handleChange} className="text-black w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="98765 43210" />
                   </div>
                 </div>
               </div>
@@ -185,20 +185,20 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-500 uppercase">Address</label>
-                  <input required name="address" value={formData.address} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="Flat No, Building, Street" />
+                  <input required name="address" value={formData.address} onChange={handleChange} className="text-black w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="Flat No, Building, Street" />
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-gray-500 uppercase">City</label>
-                    <input required name="city" value={formData.city} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="City" />
+                    <input required name="city" value={formData.city} onChange={handleChange} className="text-black w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="City" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-gray-500 uppercase">State</label>
-                    <input required name="state" value={formData.state} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="State" />
+                    <input required name="state" value={formData.state} onChange={handleChange} className="text-black w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="State" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-gray-500 uppercase">Pincode</label>
-                    <input required name="pincode" value={formData.pincode} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="123456" />
+                    <input required name="pincode" value={formData.pincode} onChange={handleChange} className="text-blackw-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#006a55] focus:ring-2 focus:ring-[#006a55]/20 outline-none transition-all bg-gray-50/50" placeholder="123456" />
                   </div>
                 </div>
               </div>
@@ -217,7 +217,7 @@ export default function CheckoutPage() {
                   onClick={() => setPaymentMethod("COD")}
                   className={`p-4 rounded-xl border-2 cursor-pointer flex items-center gap-4 transition-all ${paymentMethod === "COD" ? "border-[#006a55] bg-[#006a55]/5" : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"}`}
                 >
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "COD" ? "border-[#006a55]" : "border-gray-300"}`}>
+                  <div data-testid="radio-select-COD" className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "COD" ? "border-[#006a55]" : "border-gray-300"}`}>
                     {paymentMethod === "COD" && <div className="w-2.5 h-2.5 rounded-full bg-[#006a55]" />}
                   </div>
                   <div className="flex flex-col">
@@ -232,7 +232,7 @@ export default function CheckoutPage() {
                   onClick={() => setPaymentMethod("ONLINE")}
                   className={`p-4 rounded-xl border-2 cursor-pointer flex items-center gap-4 transition-all ${paymentMethod === "ONLINE" ? "border-[#006a55] bg-[#006a55]/5" : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"}`}
                 >
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "ONLINE" ? "border-[#006a55]" : "border-gray-300"}`}>
+                  <div data-testid="radio-select-online" className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "ONLINE" ? "border-[#006a55]" : "border-gray-300"}`}>
                     {paymentMethod === "ONLINE" && <div className="w-2.5 h-2.5 rounded-full bg-[#006a55]" />}
                   </div>
                   <div className="flex flex-col">

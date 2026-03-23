@@ -37,7 +37,7 @@ export default function RootLayout({
           
           <Navbar />
           {children}
-          <SalePopup />
+          /*<SalePopup /> */
           <WhatsAppBtn />
           <Footer />
           </SmoothScroll>

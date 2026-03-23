@@ -275,7 +275,7 @@ export default function Navbar() {
                     onBlur={() => !searchQuery && setIsSearchOpen(false)}
                   />
                   <button type="submit" className="p-2 text-[#006a55] hover:bg-gray-100">
-                    <Search className="w-4 h-4" strokeWidth={2.5} />
+                    <Search data-testid="search-icon" className="w-4 h-4" strokeWidth={2.5} />
                   </button>
                   <button type="button" onMouseDown={() => setIsSearchOpen(false)} className="p-2 text-gray-400 hover:text-red-500">
                     <X className="w-3 h-3" />
@@ -283,6 +283,7 @@ export default function Navbar() {
                 </form>
               ) : (
                 <Search 
+                  data-testid="search-small"
                   className="w-6 h-6 cursor-pointer hover:text-[#006a55] transition-colors" 
                   strokeWidth={2} 
                   onClick={() => setIsSearchOpen(true)}
@@ -292,6 +293,7 @@ export default function Navbar() {
 
             {/* USER */}
             <User 
+              data-testid="user-icon"
               className="w-6 h-6 cursor-pointer hover:text-[#006a55] transition-colors" 
               strokeWidth={2}
               onClick={handleUserClick} 
@@ -302,7 +304,7 @@ export default function Navbar() {
               className="relative cursor-pointer" 
               onClick={() => setIsCartOpen(true)}
             >
-              <ShoppingBag className="w-6 h-6 hover:text-[#006a55] transition-colors" strokeWidth={2} />
+              <ShoppingBag data-testid="bag-icon" className="w-6 h-6 hover:text-[#006a55] transition-colors" strokeWidth={2} />
               {mounted && getCartCount() > 0 && (
                 <span className="absolute -top-1 -right-1 bg-[#006a55] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-bounce-short">
                   {getCartCount()}

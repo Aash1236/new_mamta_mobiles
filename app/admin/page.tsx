@@ -122,21 +122,21 @@ export default function AdminDashboard() {
             href="/admin/orders"
             title="Orders"
             subtitle="Track and fulfill orders"
-            icon={<ShoppingBag className="w-8 h-8" />}
+            icon={<ShoppingBag data-testid="orders" className="w-8 h-8" />}
             color="bg-blue-50 text-blue-600 group-hover:bg-blue-600"
           />
           <DashboardLink
             href="/admin/products"
             title="Products"
             subtitle="Manage inventory"
-            icon={<Package className="w-8 h-8" />}
+            icon={<Package data-testid="products" className="w-8 h-8" />}
             color="bg-purple-50 text-purple-600 group-hover:bg-purple-600"
           />
           <DashboardLink
             href="/admin/add-product"
             title="Add Product"
             subtitle="Upload new items"
-            icon={<PlusCircle className="w-8 h-8" />}
+            icon={<PlusCircle data-testid="add-product" className="w-8 h-8" />}
             color="bg-green-50 text-green-600 group-hover:bg-green-600"
           />
 
@@ -145,21 +145,21 @@ export default function AdminDashboard() {
             href="/admin/brands"
             title="Brands"
             subtitle="Manage brands logos"
-            icon={<Tag className="w-8 h-8" />}
+            icon={<Tag data-testid="brands" className="w-8 h-8" />}
             color="bg-pink-50 text-pink-600 group-hover:bg-pink-600"
           />
           <DashboardLink
             href="/admin/banners"
             title="Banners"
             subtitle="Update homepage sliders"
-            icon={<ImageIcon className="w-8 h-8" />}
+            icon={<ImageIcon data-testid="banner" className="w-8 h-8" />}
             color="bg-yellow-50 text-yellow-600 group-hover:bg-yellow-600"
           />
           <DashboardLink
             href="/admin/navigation"
             title="Navigation"
             subtitle="Edit menu categories"
-            icon={<Menu className="w-8 h-8" />}
+            icon={<Menu data-testid="navigation" className="w-8 h-8" />}
             color="bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600"
           />
 
@@ -167,14 +167,14 @@ export default function AdminDashboard() {
             href="/admin/users"
             title="Customers"
             subtitle="View registered users"
-            icon={<Users className="w-8 h-8" />}
+            icon={<Users data-testid="customers" className="w-8 h-8" />}
             color="bg-orange-50 text-orange-600 group-hover:bg-orange-600"
           />
           <DashboardLink
             href="/admin/popup"
             title="Sale Popup"
             subtitle="Manage promotional popup"
-            icon={<LayoutTemplate className="w-8 h-8" />}
+            icon={<LayoutTemplate data-testid="manage-popup" className="w-8 h-8" />}
             color="bg-teal-50 text-teal-600 group-hover:bg-teal-600"
           />
         </div>

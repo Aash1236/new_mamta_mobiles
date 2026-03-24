@@ -138,13 +138,15 @@ export default function AdminProductsPage() {
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {/* We will build the edit page next */}
-                          <Link href={`/admin/edit-product/${product._id}`}>
+                          <Link href={`/admin/edit-product/${product._id}`}
+                            data-testid={`edit_product_${product.name.replace(/\s+/g, '-').toLowerCase()}`}>
                             <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                               <Edit className="w-4 h-4" />
                             </button>
                           </Link>
                           <button 
                             onClick={() => handleDelete(product._id)}
+                            data-testid={`delete_product_${product.name.replace(/\s+/g, '-').toLowerCase()}`}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />

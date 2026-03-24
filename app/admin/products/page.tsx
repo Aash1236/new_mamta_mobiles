@@ -114,7 +114,7 @@ export default function AdminProductsPage() {
                   </tr>
                 ) : (
                   products.map((product) => (
-                    <tr key={product._id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={product._id} data-testid={`product_${product.name.replace(/\s+/g, '-').toLowerCase()}`} className="hover:bg-gray-50 transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
@@ -133,7 +133,7 @@ export default function AdminProductsPage() {
                           product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
                           {product.inStock ? 'In Stock' : 'Out of Stock'}
-                        </span>
+                        </span>  
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
